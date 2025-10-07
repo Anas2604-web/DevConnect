@@ -1,13 +1,19 @@
  const express = require('express');
 
  const app = express();
- 
- app.use("/test",(req,res) => {
-    res.send("Hello from the server");
- }) 
 
- app.use("/home",(req,res) => {
-    res.send("Hello from the server");
+ const {adminAuth, userAuth} = require("./middlewares/auth");
+ 
+ app.use("/admin", adminAuth); 
+
+ app.use("/user", userAuth);  
+
+ app.get("/user", userAuth,(req,res,next)=> {
+      res.send("op user");op
+ })
+
+ app.get("/admin/getData", adminAuth,(req,res) => {
+    res.send("Hello from  server");
  })
 
  app.use("/",(req,res) => {
