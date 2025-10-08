@@ -1,25 +1,43 @@
  const express = require('express');
+ const connectDB = require("./config/database");
+ const User = require("./models/user");
 
  const app = express();
 
- const {adminAuth, userAuth} = require("./middlewares/auth");
- 
- app.use("/admin", adminAuth); 
+ app.use(express.json());
 
- app.use("/user", userAuth);  
+ app.post("/signup",async(req,res)=>{
+     try {
+     const user = new User(req.body);
+     console.log(req.body);
+     await user.save();
+     res.send("User signed up successfully");
+     }
+    catch(err) {
+           res.status(500).send("Error signing up user");
+     }
+   
+ });
 
- app.get("/user", userAuth,(req,res,next)=> {
-      res.send("op user");op
- })
+ app.get("/feed", async(req,res) => {
+    try {
+       const users = await User.find();
+       res.json(users);
+    }
+    catch(err) {
+       res.status(500).send("Error fetching users");
+    }
+ });
 
- app.get("/admin/getData", adminAuth,(req,res) => {
-    res.send("Hello from  server");
- })
-
- app.use("/",(req,res) => {
-    res.send("Hello from the op server");
- })
-
- app.listen(5000, ()=> {
+ connectDB()
+ .then(() => {
+    console.log("Database connected");
+    app.listen(5000, ()=> {
     console.log(`Server is running on port 5000 `);
  });
+ })
+    .catch((err) => {
+        console.log("Database connection failed", err);
+    });
+
+ 
