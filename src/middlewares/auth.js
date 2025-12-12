@@ -1,25 +1,27 @@
-const adminAuth = (req,res,next) => {
-   const token = "op";
-   const isAuthorized = token ==="op";
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
-   if(!isAuthorized) {
-      res.status(401).send("Unauthorized");
-   }
-   else {
-      next();
-   }
-}
+const userAuth = async (req, res, next) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).send("Unauthorized: No token provided");
+    }
 
-const userAuth = (req,res,next) => {
-   const token = "op";
-   const isAuthorized = token ==="op";
+    const decoded = jwt.verify(token, "DEV@Op&8788");
+    const { _id } = decoded;
 
-   if(!isAuthorized) {
-      res.status(401).send("Unauthorized User");
-   }
-   else {
-      next();
-   }
-}
+    const userDoc = await User.findById(_id).select("-password -__v");
+    if (!userDoc) {
+      return res.status(401).send("Unauthorized: User not found");
+    }
 
-module.exports = {adminAuth, userAuth};
+    req.user = userDoc;
+    next();
+  } catch (err) {
+    console.error("AUTH ERROR:", err);
+    return res.status(401).send("Unauthorized access");
+  }
+};
+
+module.exports = { userAuth };
