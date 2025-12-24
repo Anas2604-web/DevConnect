@@ -1,6 +1,6 @@
 const validator = require('validator');
 
-const ValidateSignUp = (body) => {
+const validateSignUp = (body) => {
   const { firstName, lastName, email, password } = body;
 
   if (!firstName || firstName.length < 2 || firstName.length > 30) {
@@ -22,6 +22,17 @@ const ValidateSignUp = (body) => {
   if (!validator.isStrongPassword(password)) {
     throw new Error("Password must be strong.");
   }
+
+  return true;
 };
 
-module.exports = ValidateSignUp;
+const validateEditProfileData = (req) => {
+  const AllowedEditFields = ["firstName", "lastName", "age", "skills", "photoUrl", "about"];
+     return Object.keys(req.body).every(field =>
+         AllowedEditFields.includes(field));
+}
+
+module.exports = {
+  validateSignUp,
+  validateEditProfileData,
+};
