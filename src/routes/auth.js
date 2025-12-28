@@ -3,6 +3,10 @@ const { validateSignUp }= require("../utils/validation");
 const bcrypt = require('bcrypt');
 const User = require("../models/user");
 const jwt = require('jsonwebtoken');
+const crypto = require("crypto");
+const validator = require("validator");
+
+
 
 const authRouter = express.Router();
 
@@ -65,5 +69,75 @@ authRouter.post("/logout", async (req,res) => {
       });
       res.send("Logout Successful");
 })
+
+authRouter.post("/forgot-password", async (req, res) => {
+  try {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if(user) {
+    const resetToken = crypto.randomBytes(32).toString("hex");
+  
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; 
+
+    await user.save();
+
+    const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
+
+    console.log("Reset link:", resetLink);
+  }
+
+  res.send("If account exists, reset link has been sent");
+ }
+ catch(err) {
+  res.status(500).send("Something went wrong");
+ }
+});
+
+authRouter.post("/reset-password/:token", async (req, res) => {
+  try {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return res.status(400).send("Token is invalid or expired");
+  }
+
+
+  if (!validator.isStrongPassword(newPassword)) {
+    return res.status(400).send("Password not strong enough");
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+
+  await user.save();
+
+  res.send("Password reset successful");
+}
+catch(err) {
+  res.status(500).send("Something went wrong");
+}
+});
+
+
 
 module.exports = authRouter

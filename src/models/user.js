@@ -69,7 +69,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         maxlength: 500,
         default: "This is a default about section."
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
 
 }, {timestamps: true}
 );
