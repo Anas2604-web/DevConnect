@@ -54,8 +54,10 @@ authRouter.post("/login", async (req, res) => {
 
     if (!isPasswordValid) return res.status(401).send("Invalid credentials");
 
-    const token = jwt.sign({ _id: user._id }, "DEV@Op&8788");
-    res.cookie("token", token, { httpOnly: true });
+    const token = jwt.sign({ _id: user._id }, "DEV@Op&8788", {
+      expiresIn:"7d",
+    });
+    res.cookie("token", token, { httpOnly: true , expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)});
 
     res.send("Login successful");
   } catch (err) {

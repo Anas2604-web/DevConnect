@@ -24,7 +24,7 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req,res) 
             return res.status(400).send("The User doesnt exist");
         }
 
-        const existingConnectionRequest = await ConnectionRequest.find({
+        const existingConnectionRequest = await ConnectionRequest.findOne({
           $or: [
           {fromUserId, toUserId},
           {fromUserId : toUserId, toUserId : fromUserId}
@@ -43,10 +43,16 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req,res) 
 
         const data = await connectionRequest.save();
 
+        const messageMap = {
+        interested: "Interest sent — we’ll notify you if it’s mutual ✨",
+        ignored: "Profile skipped. You’re in control."
+        };
+
         res.json({
-          message:"Connection Req sent",
-          data,
-        })
+        message: messageMap[status],
+        data
+});
+
     }
     catch(err) {
         res.status(400).send("ERROR" + err.message);
