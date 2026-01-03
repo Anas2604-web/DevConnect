@@ -14,7 +14,7 @@ authRouter.post("/signup", async (req, res) => {
   try {
     validateSignUp(req.body);
 
-    const { firstName, lastName, email, password, age, gender, city, about } = req.body;
+    const { firstName, lastName, email, password, age, gender, city, about, skills } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -32,6 +32,7 @@ authRouter.post("/signup", async (req, res) => {
       gender,
       city,
       about,
+      skills: skills || [] ,
     });
 
     await user.save();
