@@ -24,35 +24,41 @@ userRouter.get("/user/requests/received", userAuth,  async (req,res) => {
         }
 })
 
-userRouter.get("/user/connections", userAuth,  async (req,res) => {
-    try {
-       const loggedInUser = req.user;
+userRouter.get("/user/connections", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
 
-       const requests = await ConnectionRequest.find({
-        $or: [
-        { toUserId: loggedInUser._id, status:  "accepted" },
+    const requests = await ConnectionRequest.find({
+      $or: [
+        { toUserId: loggedInUser._id, status: "accepted" },
         { fromUserId: loggedInUser._id, status: "accepted" }
-        ]
-        })
-        .populate(
-        "fromUserId", 
-        "firstName  lastName  photoUrl  about  gender  age city  skills " )
-        .populate(
-        "toUserId",
-        "firstName  lastName  photoUrl  about  gender  age city  skills " );
+      ]
+    })
+      .populate("fromUserId", "firstName lastName photoUrl about gender age city skills")
+      .populate("toUserId", "firstName lastName photoUrl about gender age city skills")
+      .lean();
 
-        const data = requests.map((row) => {
-          if(row.fromUserId === loggedInUser._id) {
-            return row.toUserId;
-          }
-          return row.fromUserId;
-        })
+    const data = requests
+      .map((row) => {
+        if (!row.fromUserId || !row.toUserId) return null;
 
-        res.json({ data  })
-    }
-        catch(err) {
-          res.status(400).send("ERROR" + err.message);
-        }
-})
+        return row.fromUserId._id.toString() === loggedInUser._id.toString()
+          ? row.toUserId
+          : row.fromUserId;
+      })
+      .filter(Boolean);
+
+    res.json({
+      message: "Connections fetched successfully",
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch connections",
+      error: err.message,
+    });
+  }
+});
+
 
 module.exports = userRouter
