@@ -1,6 +1,7 @@
 const express = require("express");
 const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionSchema");
+const User = require("../models/user");
 const userRouter = express.Router();
 
 userRouter.get("/user/requests/received", userAuth,  async (req,res) => {
@@ -56,6 +57,41 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
     res.status(500).json({
       message: "Failed to fetch connections",
       error: err.message,
+    });
+  }
+});
+
+
+userRouter.get("/feed", userAuth, async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+
+    const requests = await ConnectionRequest.find({
+      $or: [
+        { fromUserId: loggedInUserId },
+        { toUserId: loggedInUserId }
+      ]
+    }).select("fromUserId toUserId");
+
+    const hiddenUserIds = new Set();
+
+    for (const request of requests) {
+      hiddenUserIds.add(request.fromUserId.toString());
+      hiddenUserIds.add(request.toUserId.toString());
+    }
+
+    const users = await User.find({
+      _id: {
+        $nin: [...hiddenUserIds, loggedInUserId]
+      }
+    }).select(" firstName lastName photoUrl about gender age city skills ");
+
+    res.status(200).json(users);
+
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch feed",
+      error: err.message
     });
   }
 });
