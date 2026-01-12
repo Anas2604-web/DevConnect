@@ -3,6 +3,7 @@ const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionSchema");
 const User = require("../models/user");
 const userRouter = express.Router();
+const calculateMatchScore = require("../utils/matchScore");
 
 userRouter.get("/user/requests/received", userAuth,  async (req,res) => {
     try {
@@ -96,7 +97,19 @@ userRouter.get("/feed", userAuth, async (req, res) => {
     .limit(limit)
     .lean();
 
-    res.status(200).json(users);
+    const usersWithScore = users.map(user => {
+    const { matchScore, reasons } = calculateMatchScore(req.user, user);
+
+    return {
+      ...user,
+      matchScore,
+      reasons
+     };
+   });
+
+    usersWithScore.sort((a, b) => b.matchScore - a.matchScore);
+
+    res.status(200).json(usersWithScore);
 
   } catch (err) {
     res.status(500).json({
