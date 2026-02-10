@@ -79,7 +79,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
         { fromUserId: loggedInUserId },
         { toUserId: loggedInUserId }
       ]
-    }).select("fromUserId toUserId");
+    }).select("fromUserId toUserId status");
 
     const hiddenUserIds = new Set();
 
@@ -90,7 +90,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
 
     const users = await User.find({
       _id: {
-        $nin: [...hiddenUserIds, loggedInUserId]
+        $nin: [...hiddenUserIds, loggedInUserId.toString()]
       }
     }).select(" firstName lastName photoUrl about gender age city skills ")
     .skip(skip)

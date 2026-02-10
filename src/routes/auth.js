@@ -10,6 +10,31 @@ const validator = require("validator");
 
 const authRouter = express.Router();
 
+authRouter.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(401).send("Invalid credentials");
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) return res.status(401).send("Invalid credentials");
+
+    const token = jwt.sign({ _id: user._id }, "DEV@Op&8788", {
+      expiresIn:"7d",
+    });
+    res.cookie("token", token, { httpOnly: true , expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)});
+
+    res.send(user);
+  } catch (err) {
+    res.status(500).send("Error during login");
+  }
+});
+
+
 authRouter.post("/signup", async (req, res) => {
   try {
     validateSignUp(req.body);
@@ -35,34 +60,18 @@ authRouter.post("/signup", async (req, res) => {
       skills: skills || [] ,
     });
 
-    await user.save();
-    res.send("User signed up successfully");
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-authRouter.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-
-    const user = await User.findOne({ email });
-
-    if (!user) return res.status(401).send("Invalid credentials");
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) return res.status(401).send("Invalid credentials");
-
-    const token = jwt.sign({ _id: user._id }, "DEV@Op&8788", {
-      expiresIn:"7d",
-    });
+    const savedUser =  await user.save();
+    const token = jwt.sign({ _id: savedUser._id }, "DEV@Op&8788", {
+    expiresIn: "7d"
+  });
+  
     res.cookie("token", token, { httpOnly: true , expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)});
 
-    res.send(user);
+    res.json({message: "User signed up successfully",
+      data: savedUser,
+  });
   } catch (err) {
-    res.status(500).send("Error during login");
+    res.status(500).send(err.message);
   }
 });
 

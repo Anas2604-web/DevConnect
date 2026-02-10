@@ -30,7 +30,6 @@ const userSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
-        required: true,
         minlength: 4,
         maxlength: 6,
         validate(value) {
@@ -42,11 +41,9 @@ const userSchema = new mongoose.Schema({
     age: {
         type: Number,
         min: 18,
-        required: true,
     },
     city: {
         type: String,
-        required: true,
     },
     skills: {
         type: [String],
