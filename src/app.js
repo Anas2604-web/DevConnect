@@ -11,7 +11,7 @@ const requestRouter = require("./routes/requests");
 const userRouter = require('./routes/user');
 
 app.use(cors({
-  origin: ["http://localhost:5173", "http://3.106.132.10"],
+  origin: ["http://localhost:5173", "http://52.63.160.20"],
   credentials: true,
 }))
 
@@ -23,6 +23,7 @@ app.use("/api", authRouter);
 app.use("/api", profileRouter);
 app.use("/api", requestRouter);
 app.use("/api", userRouter);
+
 
 connectDB()
   .then(() => {

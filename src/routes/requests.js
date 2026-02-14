@@ -3,6 +3,8 @@ const { userAuth } = require('../middlewares/auth');
 const ConnectionRequest = require("../models/connectionSchema");
 const User = require("../models/user");
 const requestRouter = express.Router();
+const { sendEmail } = require("../utils/sendEmail");
+
 
 requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req,res) => {
     try {
@@ -42,6 +44,17 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req,res) 
         })
 
         const data = await connectionRequest.save();
+
+        
+       if (status === "interested") {
+  await sendEmail(
+     toUser.email, // receiver
+    "New Interest on DevConnect 👀",
+    `<h2>${req.user.firstName} is interested in you!</h2>
+     <p>Login to check the profile.</p>`
+  );
+}
+
 
         const messageMap = {
         interested: "Interest sent — we’ll notify you if it’s mutual ✨",
@@ -100,5 +113,20 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req,re
         res.status(400).send("ERROR" + err.message); 
   }
 })
+
+
+requestRouter.post("/test-mail", async (req, res) => {
+  try {
+    await sendEmail(
+      "annaasskhan6@gmail.com",
+      "DevConnect SES Test 🚀",
+      "<h2>SES is working brooo 🎉</h2>"
+    );
+
+    res.send("Email sent!");
+  } catch (err) {
+    res.status(500).send("Failed to send email");
+  }
+});
 
 module.exports = requestRouter
