@@ -5,6 +5,7 @@ const User = require("../models/user");
 const jwt = require('jsonwebtoken');
 const crypto = require("crypto");
 const validator = require("validator");
+const { sendEmail } = require("../utils/sendEmail");
 
 
 
@@ -61,7 +62,20 @@ authRouter.post("/signup", async (req, res) => {
     });
 
     const savedUser =  await user.save();
-    const token = jwt.sign({ _id: savedUser._id }, "DEV@Op&8788", {
+
+   try {
+      await sendEmail(
+        email,
+        "Welcome to DevConnect 🚀",
+        `<h2>Welcome ${firstName}!</h2>
+        <p>Your developer journey starts now.</p>`
+      );
+    } catch (err) {
+      console.log("Welcome email failed:", err.message);
+}
+
+
+    const token = jwt.sign({ _id: savedUser._id }, process.env.JWT_SECRET, {
     expiresIn: "7d"
   });
   
@@ -101,9 +115,26 @@ authRouter.post("/forgot-password", async (req, res) => {
 
     await user.save();
 
-    const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    console.log("Reset link:", resetLink);
+   try {
+    await sendEmail(
+      user.email,
+      "Reset Your DevConnect Password 🔐",
+      `
+        <h2>Password Reset Request</h2>
+        <p>You requested to reset your password.</p>
+        <p>Click below link (valid 15 mins):</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>If you didn't request this, ignore.</p>
+      `
+);
+   } 
+    catch(err) {
+        console.log("Reset email failed:", err.message);
+    }
+
+
   }
 
   res.send("If account exists, reset link has been sent");
@@ -142,6 +173,19 @@ authRouter.post("/reset-password/:token", async (req, res) => {
   user.resetPasswordExpires = undefined;
 
   await user.save();
+
+
+   try {  
+  await sendEmail(
+    user.email,
+    "Password Changed Successfully",
+    "<p>Your password was updated. If not you, contact support.</p>"
+);
+   } 
+     catch(err) {
+         console.log("Confirmation email failed"); 
+     }
+
 
   res.send("Password reset successful");
 }

@@ -47,17 +47,17 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req,res) 
 
         
        if (status === "interested") {
-  await sendEmail(
-     toUser.email, // receiver
-    "New Interest on DevConnect 👀",
-    `<h2>${req.user.firstName} is interested in you!</h2>
-     <p>Login to check the profile.</p>`
-  );
+          await sendEmail(
+            toUser.email,  
+            "New Interest on DevConnect 👀",
+            `<h2>${req.user.firstName} is interested in you!</h2>
+            <p>Login to check the profile.</p>`
+          );
 }
 
 
         const messageMap = {
-        interested: "Interest sent — we’ll notify you if it’s mutual ✨",
+        interested: "Interest sent - we’ll notify you if it’s mutual ✨",
         ignored: "Profile skipped. You’re in control."
         };
 
@@ -102,6 +102,19 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req,re
        connectionRequest.status = status
        
        const data = await connectionRequest.save();
+
+       if (status === "accepted") {
+          const fromUser = await User.findById(connectionRequest.fromUserId);
+
+            if (fromUser?.email) {
+              await sendEmail(
+                fromUser.email,
+                "Your DevConnect Request Was Accepted 🎉",
+                `<h2>${loggedInUser.firstName} accepted your request!</h2>
+                <p>Start chatting and building connections 🚀</p>`
+              );
+            }
+}
        
        res.json({
         message: `Connection request ${status} successfully`,
