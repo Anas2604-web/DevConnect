@@ -47,12 +47,17 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req,res) 
 
         
        if (status === "interested") {
+         try {
           await sendEmail(
             toUser.email,  
             "New Interest on DevConnect 👀",
             `<h2>${req.user.firstName} is interested in you!</h2>
             <p>Login to check the profile.</p>`
           );
+        }
+          catch(err) {
+            console.log("Email failed but continuing:", err.message);
+          }
 }
 
 
@@ -104,6 +109,7 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req,re
        const data = await connectionRequest.save();
 
        if (status === "accepted") {
+         try {
           const fromUser = await User.findById(connectionRequest.fromUserId);
 
             if (fromUser?.email) {
@@ -114,6 +120,10 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req,re
                 <p>Start chatting and building connections 🚀</p>`
               );
             }
+          }
+          catch(err) {
+             console.log("Email failed but continuing:", err.message);
+          }
 }
        
        res.json({
