@@ -15,7 +15,10 @@ const userRouter = require('./routes/user');
 const paymentRouter = require("./routes/payment");
 
 app.use(cors({
-  origin: ["http://localhost:5173", "http://52.63.160.20"],
+  origin: [
+  "http://localhost:5173",
+  "https://devconnectweb.xyz"
+],
   credentials: true,
 }))
 
