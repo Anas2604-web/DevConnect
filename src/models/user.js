@@ -67,6 +67,16 @@ const userSchema = new mongoose.Schema({
         maxlength: 500,
         default: "This is a default about section."
     },
+    isPremium: {
+        type: Boolean,
+        default: false
+        },
+        premiumPlan: {
+        type: String,
+        enum: ["silver", "gold"],
+        default: null
+    },
+    premiumActivatedAt: Date,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
 
