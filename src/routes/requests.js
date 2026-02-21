@@ -4,9 +4,10 @@ const ConnectionRequest = require("../models/connectionSchema");
 const User = require("../models/user");
 const requestRouter = express.Router();
 const { sendEmail } = require("../utils/sendEmail");
+const swipeLimiter = require("../middlewares/swipeLimiter");
 
 
-requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req,res) => {
+requestRouter.post("/request/send/:status/:toUserId", userAuth, swipeLimiter,  async (req,res) => {
     try {
         const fromUserId = req.user._id;
         const toUserId = req.params.toUserId;

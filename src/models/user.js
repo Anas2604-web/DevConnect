@@ -76,6 +76,13 @@ const userSchema = new mongoose.Schema({
         enum: ["silver", "gold"],
         default: null
     },
+    dailySwipeCount: {
+    type: Number,
+    default: 0
+    },
+    lastSwipeDate: {
+    type: Date
+    },
     premiumActivatedAt: Date,
     resetPasswordToken: String,
     resetPasswordExpires: Date,

@@ -36,9 +36,11 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         { fromUserId: loggedInUser._id, status: "accepted" }
       ]
     })
-      .populate("fromUserId", "firstName lastName photoUrl about gender age city skills")
-      .populate("toUserId", "firstName lastName photoUrl about gender age city skills")
-      .lean();
+        .populate("fromUserId",
+        "firstName lastName photoUrl about gender age city skills isPremium premiumPlan")
+        .populate("toUserId",
+        "firstName lastName photoUrl about gender age city skills isPremium premiumPlan")
+        .lean();
 
     const data = requests
       .map((row) => {
@@ -92,7 +94,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
       _id: {
         $nin: [...hiddenUserIds, loggedInUserId.toString()]
       }
-    }).select(" firstName lastName photoUrl about gender age city skills ")
+    }).select(" firstName lastName photoUrl about gender age city skills isPremium premiumPlan ")
     .skip(skip)
     .limit(limit)
     .lean();
