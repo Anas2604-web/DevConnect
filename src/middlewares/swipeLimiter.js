@@ -1,3 +1,5 @@
+const User = require("../models/user");
+
 const swipeLimiter = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
@@ -10,10 +12,13 @@ const swipeLimiter = async (req, res, next) => {
       await user.save();
     }
 
-    let limit = 20; 
+    if (user.premiumPlan === "gold") {
+      req.remainingSwipes = "unlimited";
+      return next();
+    }
 
+    let limit = 9;
     if (user.premiumPlan === "silver") limit = 50;
-    if (user.premiumPlan === "gold") return next();  
 
     if (user.dailySwipeCount >= limit) {
       return res.status(403).json({
@@ -23,6 +28,8 @@ const swipeLimiter = async (req, res, next) => {
 
     user.dailySwipeCount += 1;
     await user.save();
+
+    req.remainingSwipes = limit - user.dailySwipeCount;
 
     next();
 

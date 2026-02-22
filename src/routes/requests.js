@@ -69,7 +69,8 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, swipeLimiter,  a
 
         res.json({
         message: messageMap[status],
-        data
+        data,
+        remainingSwipes: req.remainingSwipes ?? null,
 });
 
     }
